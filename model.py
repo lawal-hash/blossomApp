@@ -9,12 +9,13 @@ class ModifiedSqueezenet(nn.Module):
     Args:
         nn (_type_): _description_
     """
-    def __init__(self, num_classes=102, trainable=True):
+    def __init__(self, num_classes=102, trainable=False, hidden=128):
         super().__init__()
         self.model = models.squeezenet1_1(pretrained=True)
         self._freeze(trainable)
-        self.model.num_classes = num_classes
+        self.model.model.num_classes = num_classes
         self.model.classifier = self._output()
+        self.hidden = hidden
 
     def _freeze(self, trainable):
         """_summary_
@@ -31,12 +32,14 @@ class ModifiedSqueezenet(nn.Module):
         Returns:
             _type_: _description_
         """
-        output = nn.Sequential(OrderedDict([('conv1', nn.Conv2d(512, 128, kernel_size=(3, 3), stride=(1, 1))),
+        output = nn.Sequential(OrderedDict([('dropout1', nn.Dropout(p=0.55, inplace=True)),
+                                            ('conv1', nn.Conv2d(512, self.hidden, kernel_size=(3, 3), stride=(1, 1))),
                                             ('relu1', nn.ReLU(inplace=True)),
                                             ('pool', nn.MaxPool2d(kernel_size=(3, 3), stride=(
                                                 1, 1), dilation=1, ceil_mode=True)),
+                                            ('dropout2', nn.Dropout(p=0.5, inplace=True)),
                                             ('conv2', nn.Conv2d(
-                                                128, 102, kernel_size=(3, 3), stride=(1, 1))),
+                                            self.hidden, 102, kernel_size=(3, 3), stride=(1, 1))),
                                             ('relu2', nn.ReLU(inplace=True)),
                                             ('global_avgpool', nn.AvgPool2d(
                                                 kernel_size=7, stride=1, padding=0)),
