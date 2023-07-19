@@ -1,3 +1,7 @@
 flowers/
 flower_data.tar.gz
 Image_Classifier_Project.ipynb
+checkpoint*.pth
+forget_me_not.jpeg
+__pycache__/
+.DS_Store
