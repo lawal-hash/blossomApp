@@ -6,7 +6,7 @@ class Trainer:
     """_summary_
     """
 
-    def __init__(self, model, optimizer, criterion, device='cuda'):
+    def __init__(self, model, optimizer, criterion, device='cuda', checkpoint=None, path=None):
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
@@ -14,6 +14,8 @@ class Trainer:
         self.valid_losses = []
         self.device = device
         self.completed_epochs = 0
+        self.save = checkpoint
+        self.path = path
 
     def fit(self, trainds, epochs=20, validation_data=None):
         """_summary_
@@ -68,6 +70,10 @@ class Trainer:
                 valid_stop = time.time() - valid_start
 
             self.completed_epochs += 1
+            if self.save and (idx+1) %15 ==0:
+                new_path = self.path + str(idx+1) +'.pth'
+                self.check_point(new_path)
+            
             print("Epoch: {}/{}..".format(idx+1, epochs),
                   "Train Time:{:.3f}.".format(train_stop/60),
                   "Training Loss:{:.3f}..".format(running_loss/len(trainds)),
@@ -78,38 +84,50 @@ class Trainer:
                   "Valid Time:{:.3f}.".format(valid_stop/60),
                   "Valid Accuracy: {:.3f}".format(valid_accuracy/len(validation_data)))
             self.model.train()
+        
 
-        def checkpoint(self, path='checkpoint.pth'):
-            """_summary_
+    def check_point(self, path='checkpoint.pth'):
+        """_summary_
 
-            Args:
-                path (str, optional): _description_. Defaults to 'checkpoint.pth'.
-            """
-            info = {'num_classes': self.model.num_classes,
-                    'epoch': self.completed_epochs,
-                    'model_state_dict': self.model.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict(),
-                    'train_losses': self.train_losses,
-                    'valid_losses': self.valid_losses
-                    }
-            torch.save(info, path)
+        Args:
+            path (str, optional): _description_. Defaults to 'checkpoint.pth'.
+        """
+        info = {'num_classes': self.model.model.num_classes,
+                'epoch': self.completed_epochs,
+                'model_state_dict': self.model.state_dict(),
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                'train_losses': self.train_losses,
+                'valid_losses': self.valid_losses
+                }
+        torch.save(info, path)
 
-        def load_checkpoint(self, path):
-            """_summary_
 
-            Args:
-                path (_type_): _description_
-            """
-            checkpoint = torch.load(path)
-            self.model.load_state_dict(checkpoint['model_state_dict'])
-            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            self.train_losses = checkpoint['self.train_losses']
-            self.valid_losses = checkpoint['self.valid_losses']
-            self.completed_epochs = checkpoint['epoch']
-            self.model.num_classes = checkpoint['num_classes']
+        
+    def load_checkpoint(self, path):
+        """_summary_
+        
+        Args:
+            path (_type_): _description_
+        """
+        checkpoint = torch.load(path)
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.train_losses = checkpoint['train_losses']
+        self.valid_losses = checkpoint['valid_losses']
+        self.completed_epochs = checkpoint['epoch']
+        self.model.model.num_classes = checkpoint['num_classes']
 
-        def predict(self, image, top=5):
-            log_prob = self.model(image)
-            prob = torch.exp(log_prob)
-            top_p, top_class = prob.topk(top, dim=1)
-            return top_p, top_class
+    def predict(self, image, top=5):
+        """_summary_
+
+        Args:
+            image (_type_): _description_
+            top (int, optional): _description_. Defaults to 5.
+
+        Returns:
+            _type_: _description_
+        """
+        log_prob = self.model(image)
+        prob = torch.exp(log_prob)
+        top_p, top_class = prob.topk(top, dim=1)
+        return top_p, top_class
