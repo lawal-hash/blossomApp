@@ -1,4 +1,3 @@
-import json
 import os
 
 from torch import nn, optim
@@ -8,6 +7,7 @@ from torchvision.datasets import ImageFolder
 
 from model import ModifiedSqueezenet
 from trainer import Trainer
+from input_args import get_users_args
 
 
 def main():
@@ -37,12 +37,17 @@ def main():
     valid_datasets = ImageFolder(valid_dir, transform=test_transform)
     test_datasets = ImageFolder(test_dir, transform=test_transform)
 
-    train_dataloader = DataLoader(train_datasets, batch_size=user_arg.train_batchsize, shuffle=True)
-    valid_dataloader = DataLoader(valid_datasets, batch_size=user_arg.test_batchsize, shuffle=True)
-    test_dataloader = DataLoader(test_datasets, batch_size=user_arg.test_batchsize, shuffle=True)
+    train_dataloader = DataLoader(
+        train_datasets, batch_size=user_arg.train_batchsize, shuffle=True)
+    valid_dataloader = DataLoader(
+        valid_datasets, batch_size=user_arg.test_batchsize, shuffle=True)
+    test_dataloader = DataLoader(
+        test_datasets, batch_size=user_arg.test_batchsize, shuffle=True)
 
-    squeezenet = ModifiedSqueezenet()
+    squeezenet = ModifiedSqueezenet(
+        num_classes=user_arg.num_classes, trainable=user_arg.trainable, hidden=user_arg.num_classes)
     trainer = Trainer(model=squeezenet, optimizer=optim.Adam(squeezenet.parameters(
-    ), lr=user_arg.learning_rate), criterion=nn.NLLLoss(), device=user_arg.device,checkpoint=user_arg.checkpoint, path=user_arg.checkpoint_path)
-    
-    trainer.fit(train_dataloader, epochs=user_arg.epochs,validation_data=valid_dataloader)   
+    ), lr=user_arg.learning_rate), criterion=nn.NLLLoss(), device=user_arg.device, checkpoint=user_arg.checkpoint, path=user_arg.checkpoint_path)
+
+    trainer.fit(train_dataloader, epochs=user_arg.epochs,
+                validation_data=valid_dataloader)
