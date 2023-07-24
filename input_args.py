@@ -3,9 +3,9 @@ import argparse
 
 def get_users_args():
     parser = argparse.ArgumentParser()    
-    parser.add_argument('input', type=str, default='/', help='path to test image')
-    parser.add_argument('data_directory', type=str, default='flowers/', help='path to folder of images')
-    parser.add_argument('checkpoint', type=bool, default=True, help='Save the model state_dict after training, highly encouraged')
+    parser.add_argument('--input', type=str, default='/', help='path to test image')
+    parser.add_argument('--data_directory', type=str, default='flowers/', help='path to folder of images')
+    parser.add_argument('--checkpoint', type=bool, default=True, help='Save the model state_dict after training, highly encouraged')
     
     parser.add_argument('--arch',type = str, default='squeezenet', help = 'Type of pre-trained neural network architecture to use, not fully supported')
     parser.add_argument('--checkpoint_path', type=str, default='checkpoint', help='path to save the checkpoint')    
@@ -17,9 +17,15 @@ def get_users_args():
     
     parser.add_argument('--train_batchsize', type=int, default=32, help='training batch size')
     parser.add_argument('--test_batchsize', type=int, default=16, help='test batch size')
-    
-    parser.add_argument('--hidden', type=int, default=128, help='Size of hidden layer')
+
     parser.add_argument('--num_classes', type=int, default=102, help='number of classes in your data')
     parser.add_argument('--trainable', type=bool, default=False, help='Freeze the earlier parameter of the pretrain model when True')
     
     return parser.parse_args()
+
+
+
+
+
+
+

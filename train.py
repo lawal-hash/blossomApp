@@ -45,9 +45,13 @@ def main():
         test_datasets, batch_size=user_arg.test_batchsize, shuffle=True)
 
     squeezenet = ModifiedSqueezenet(
-        num_classes=user_arg.num_classes, trainable=user_arg.trainable, hidden=user_arg.num_classes)
+        num_classes=user_arg.num_classes, trainable=user_arg.trainable)
     trainer = Trainer(model=squeezenet, optimizer=optim.Adam(squeezenet.parameters(
     ), lr=user_arg.learning_rate), criterion=nn.NLLLoss(), device=user_arg.device, checkpoint=user_arg.checkpoint, path=user_arg.checkpoint_path)
 
     trainer.fit(train_dataloader, epochs=user_arg.epochs,
                 validation_data=valid_dataloader)
+
+
+if __name__ == "__main__":
+    main()

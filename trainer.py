@@ -7,7 +7,7 @@ class Trainer:
     """
 
     def __init__(self, model, optimizer, criterion, device='cuda', checkpoint=None, path=None):
-        self.model = model
+        self.classifier = model
         self.optimizer = optimizer
         self.criterion = criterion
         self.train_losses = []
@@ -28,7 +28,7 @@ class Trainer:
         Returns:
             _type_: _description_
         """
-        self.model.to(self.device)
+        self.classifier.to(self.device)
         for idx in range(epochs):
             train_start = time.time()
             running_loss, running_accuracy = 0, 0
@@ -36,7 +36,7 @@ class Trainer:
                 images, labels = images.to(self.device), labels.to(self.device)
 
                 self.optimizer.zero_grad()
-                log_prob = self.model(images)
+                log_prob = self.classifier(images)
                 loss = self.criterion(log_prob, labels)
                 loss.backward()
                 self.optimizer.step()
@@ -53,12 +53,12 @@ class Trainer:
             if validation_data:
                 valid_start = time.time()
                 valid_loss, valid_accuracy = 0, 0
-                self.model.eval()
+                self.classifier.eval()
                 with torch.no_grad():
                     for images, labels in validation_data:
                         images, labels = images.to(
                             self.device), labels.to(self.device)
-                        log_prob = self.model(images)
+                        log_prob = self.classifier(images)
                         valid_loss += self.criterion(log_prob, labels)
 
                         prob = torch.exp(log_prob)
@@ -71,8 +71,10 @@ class Trainer:
 
             self.completed_epochs += 1
             if self.save and (idx+1) %15 ==0:
+                self.classifier.to('cpu') 
                 new_path = self.path + str(idx+1) +'.pth'
                 self.check_point(new_path)
+                self.classifier.to(self.device) 
             
             print("Epoch: {}/{}..".format(idx+1, epochs),
                   "Train Time:{:.3f}.".format(train_stop/60),
@@ -83,7 +85,7 @@ class Trainer:
                       valid_loss/len(validation_data)),
                   "Valid Time:{:.3f}.".format(valid_stop/60),
                   "Valid Accuracy: {:.3f}".format(valid_accuracy/len(validation_data)))
-            self.model.train()
+            self.classifier.train()
         
 
     def check_point(self, path='checkpoint.pth'):
@@ -92,9 +94,9 @@ class Trainer:
         Args:
             path (str, optional): _description_. Defaults to 'checkpoint.pth'.
         """
-        info = {'num_classes': self.model.model.num_classes,
+        info = {'num_classes': self.classifier.model.num_classes,
                 'epoch': self.completed_epochs,
-                'model_state_dict': self.model.state_dict(),
+                'model_state_dict': self.classifier.state_dict(),
                 'optimizer_state_dict': self.optimizer.state_dict(),
                 'train_losses': self.train_losses,
                 'valid_losses': self.valid_losses
@@ -110,12 +112,12 @@ class Trainer:
             path (_type_): _description_
         """
         checkpoint = torch.load(path)
-        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.classifier.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.train_losses = checkpoint['train_losses']
         self.valid_losses = checkpoint['valid_losses']
         self.completed_epochs = checkpoint['epoch']
-        self.model.model.num_classes = checkpoint['num_classes']
+        self.classifier.model.num_classes = checkpoint['num_classes']
 
     def predict(self, image, top=5):
         """_summary_
@@ -127,7 +129,7 @@ class Trainer:
         Returns:
             _type_: _description_
         """
-        log_prob = self.model(image)
+        log_prob = self.classifier(image)
         prob = torch.exp(log_prob)
         top_p, top_class = prob.topk(top, dim=1)
         return top_p, top_class
