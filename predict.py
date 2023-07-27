@@ -1,8 +1,8 @@
 import json
 
-from model import ModifiedSqueezenet
-from util import load_checkpoint, predict, label_name
-from input_args import get_users_args
+from blossom.model import ModifiedSqueezenet
+from blossom.util import load_checkpoint, predict, label_name
+from blossom.input_args import get_users_args
 
 
 def main():

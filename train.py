@@ -5,9 +5,9 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
-from model import ModifiedSqueezenet
-from trainer import Trainer
-from input_args import get_users_args
+from blossom.model import ModifiedSqueezenet
+from blossom.trainer import Trainer
+from blossom.input_args import get_users_args
 
 
 def main():
