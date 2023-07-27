@@ -7,7 +7,7 @@ def get_users_args():
     parser.add_argument('--data_directory', type=str, default='flowers/', help='path to folder of images')
     parser.add_argument('--checkpoint', type=bool, default=True, help='Save the model state_dict after training, highly encouraged')
     
-    parser.add_argument('--arch',type = str, default='squeezenet', help = 'Type of pre-trained neural network architecture to use, not fully supported')
+    parser.add_argument('--arch',type = str, default='Efficientnet', help = 'Type of pre-trained neural network architecture to use, other supported architectures include MNASNet, Swin_T,maxvit_t,ConvNeXt, and RegNet')
     parser.add_argument('--checkpoint_path', type=str, default='checkpoint', help='path to save the checkpoint')    
     parser.add_argument('--top_k', type=int, default=5, help='Return K most likely class')
     parser.add_argument('--category_names', type=str, default='cat_to_name.json', help='path to folder of mapping of categories to the real names')

@@ -3,15 +3,25 @@ from torch import nn
 from torchvision import models
 
 
+
+architecture = {
+    "MNASNet": models.mnasnet1_3(weights='IMAGENET1K_V1')  ,
+    "Efficientnet" : models.efficientnet_b3(weights='IMAGENET1K_V1') ,
+    "Swin_T": models.swin_t(weights='IMAGENET1K_V1'),
+    "maxvit_t": models.maxvit_t(weights='IMAGENET1K_V1'),
+    "ConvNeXt": models.convnext_tiny(weights='IMAGENET1K_V1'),
+    "RegNet": models.regnet_y_3_2gf(weights='IMAGENET1K_V1')   
+}
+
 class ModifiedSqueezenet(nn.Module):
     """_summary_
 
     Args:
         nn (_type_): _description_
     """
-    def __init__(self, num_classes=102, trainable=False):
+    def __init__(self, num_classes=102, trainable=False, model_name='Efficientnet'):
         super().__init__()
-        self.model = models.squeezenet1_1(pretrained=True)
+        self.model = architecture.get(model_name)
         self._freeze(trainable)
         self.model.model.num_classes = num_classes
         self.model.classifier = self._output()
