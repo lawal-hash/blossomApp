@@ -5,17 +5,19 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
-from blossom.model import ModifiedSqueezenet
+from blossom.model import BlossomNet
 from blossom.trainer import Trainer
 from blossom.input_args import get_users_args
+from blossom.transform import RESIZE, CROP
 
 
 def main():
     user_arg = get_users_args()
 
     train_transform = transforms.Compose([
+        transforms.Resize(RESIZE.get(user_arg.arch)),
+        transforms.CenterCrop(CROP.get(user_arg.arch)),
         transforms.RandomRotation(30),
-        transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],
@@ -23,8 +25,8 @@ def main():
     ])
 
     test_transform = transforms.Compose([
-        # transforms.Resize(256),
-        transforms.CenterCrop(224),
+        transforms.Resize(RESIZE.get(user_arg.arch)),
+        transforms.CenterCrop(CROP.get(user_arg.arch)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
@@ -44,8 +46,8 @@ def main():
     test_dataloader = DataLoader(
         test_datasets, batch_size=user_arg.test_batchsize, shuffle=True)
 
-    squeezenet = ModifiedSqueezenet(
-        num_classes=user_arg.num_classes, trainable=user_arg.trainable)
+    squeezenet = BlossomNet(
+        num_classes=user_arg.num_classes, trainable=user_arg.trainable, model_name=user_arg.arch)
     trainer = Trainer(model=squeezenet, optimizer=optim.Adam(squeezenet.parameters(
     ), lr=user_arg.learning_rate), criterion=nn.NLLLoss(), device=user_arg.device, checkpoint=user_arg.checkpoint, path=user_arg.checkpoint_path)
 

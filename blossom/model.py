@@ -1,31 +1,40 @@
 from collections import OrderedDict
 from torch import nn
-from torchvision import models
-
-
+from torchvision.models import get_model
 
 architecture = {
-    "MNASNet": models.mnasnet1_3(weights='IMAGENET1K_V1')  ,
-    "Efficientnet" : models.efficientnet_b3(weights='IMAGENET1K_V1') ,
-    "Swin_T": models.swin_t(weights='IMAGENET1K_V1'),
-    "maxvit_t": models.maxvit_t(weights='IMAGENET1K_V1'),
-    "ConvNeXt": models.convnext_tiny(weights='IMAGENET1K_V1'),
-    "RegNet": models.regnet_y_3_2gf(weights='IMAGENET1K_V1')   
+    "MNASNet": 'mnasnet1_3',
+    "Efficientnet": 'efficientnet_b3',
+    # "Swin_T": 'swin_t',
+    "maxvit_t": 'maxvit_t',
+    "ConvNeXt": 'convnext_tiny',
+    "RegNet": 'regnet_y_3_2gf'
 }
 
-class ModifiedSqueezenet(nn.Module):
+
+class BlossomNet(nn.Module):
     """_summary_
 
     Args:
         nn (_type_): _description_
     """
+
     def __init__(self, num_classes=102, trainable=False, model_name='Efficientnet'):
         super().__init__()
-        self.model = architecture.get(model_name)
+        self.model = get_model(architecture.get(model_name), weights='DEFAULT')
         self._freeze(trainable)
         self.model.model.num_classes = num_classes
-        self.model.classifier = self._output()
-        
+        if hasattr(self.model, 'classifier'):
+            self.model.classifier = self._output()
+        elif hasattr(self.model, 'linear'):
+            self.model.linear = self._output()
+        elif hasattr(self.model, 'fc'):
+            self.model.fc = self._output()
+        else:
+            raise AttributeError('Unsupported architecture')
+
+        if hasattr(self.model, 'avgpool'):
+            self.model.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
 
     def _freeze(self, trainable):
         """_summary_
@@ -43,16 +52,20 @@ class ModifiedSqueezenet(nn.Module):
             _type_: _description_
         """
         output = nn.Sequential(OrderedDict([('dropout1', nn.Dropout(p=0.55, inplace=True)),
-                                            ('conv1', nn.Conv2d(512, 128, kernel_size=(3, 3), stride=(1, 1))),
+                                            ('linear1', nn.Linear()),
                                             ('relu1', nn.ReLU(inplace=True)),
-                                            ('pool', nn.MaxPool2d(kernel_size=(3, 3), stride=(
-                                                1, 1), dilation=1, ceil_mode=True)),
-                                            ('dropout2', nn.Dropout(p=0.5, inplace=True)),
-                                            ('conv2', nn.Conv2d(
-                                            128, 102, kernel_size=(3, 3), stride=(1, 1))),
+                                            ('linear2', nn.Linear()),
                                             ('relu2', nn.ReLU(inplace=True)),
-                                            ('global_avgpool', nn.AvgPool2d(
-                                                kernel_size=7, stride=1, padding=0)),
+                                            ('output', nn.LogSoftmax(dim=1))
+                                            ]))
+        return output
+
+    def _linear_output(self):
+        output = nn.Sequential(OrderedDict([('dropout1', nn.Dropout(p=0.55, inplace=True)),
+                                            ('linear1', nn.Linear()),
+                                            ('relu1', nn.ReLU(inplace=True)),
+                                            ('linear2', nn.Linear()),
+                                            ('relu2', nn.ReLU(inplace=True)),
                                             ('output', nn.LogSoftmax(dim=1))
                                             ]))
         return output
