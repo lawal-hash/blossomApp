@@ -1,38 +1,37 @@
 from PIL import Image
-
-import numpy as np
 import torch
-from torchvision.transforms import functional as F
+from torchvision import transforms
+from blossom.transform import RESIZE, CROP
 
 
-def process_image(image_path):
+def process_image(image_path,model_name):
     ''' Scales, crops, and normalizes a PIL image for a PyTorch model,
         returns an Numpy array
     '''
     img = Image.open(image_path)
-    img_resized = F.resize(img, 256)
-    cropped_img = F.center_crop(img_resized, 224)
-    image = np.array(cropped_img)
-    normalized_image = (
-        image - np.array([0.485, 0.456, 0.406])) / np.array([0.229, 0.224, 0.225])
-    #tensor_img = F.pil_to_tensor(cropped_img)
-    #tensor_img = F.normalize(tensor_img, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-
-    tensor_img = torch.from_numpy(normalized_image.transpose(), )
+    test_transform = transforms.Compose([
+        transforms.Resize(RESIZE.get(model_name)),
+        transforms.CenterCrop(CROP.get(model_name)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],
+                            [0.229, 0.224, 0.225])
+    ])
+    
+    tensor_img = test_transform(img)
     return tensor_img, img
 
 
-def predict(image_path, model, topk=5, device = 'cuda'):
+def predict(image_path, model, model_name, top_k=5, device='cuda'):
     ''' Predict the class (or classes) of an image using a trained deep learning model.
     '''
     model.to(device)
-    tensor_image, img = process_image(image_path)
+    tensor_image, img = process_image(image_path,model_name)
     tensor_image = tensor_image.type('torch.FloatTensor')
     tensor_image = tensor_image.reshape(-1, 3, 224, 224)
 
     log_prob = model(tensor_image)
-    prob = torch.exp(log_prob)
-    top_p, top_class = prob.topk(topk, dim=1)
+    prob = log_prob.exp()
+    top_p, top_class = prob.topk(top_k, dim=1)
     return img, top_p, top_class
 
 
@@ -40,6 +39,7 @@ def label_name(top_p, top_class, idx_to_class=None):
     labels = []
     top_class = top_class.detach().numpy().reshape(-1,).tolist()
     top_p = top_p.detach().numpy().reshape(-1,).tolist()
+    #TO DO: Return just the class probabilities, when categories file is not provided
     for target in top_class:
         labels.append(idx_to_class.get(str(target)))
     return labels, top_p

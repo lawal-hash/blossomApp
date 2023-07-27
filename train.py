@@ -21,7 +21,7 @@ def main():
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],
-                             [0.229, 0.224, 0.225])
+                            [0.229, 0.224, 0.225])
     ])
 
     test_transform = transforms.Compose([
@@ -29,7 +29,7 @@ def main():
         transforms.CenterCrop(CROP.get(user_arg.arch)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],
-                             [0.229, 0.224, 0.225])
+                            [0.229, 0.224, 0.225])
     ])
     train_dir = os.path.join(user_arg.data_directory, 'train')
     valid_dir = os.path.join(user_arg.data_directory, 'valid')
@@ -46,9 +46,9 @@ def main():
     test_dataloader = DataLoader(
         test_datasets, batch_size=user_arg.test_batchsize, shuffle=True)
 
-    squeezenet = BlossomNet(
+    blossomnet = BlossomNet(
         num_classes=user_arg.num_classes, trainable=user_arg.trainable, model_name=user_arg.arch)
-    trainer = Trainer(model=squeezenet, optimizer=optim.Adam(squeezenet.parameters(
+    trainer = Trainer(model=blossomnet, optimizer=optim.Adam(blossomnet.parameters(
     ), lr=user_arg.learning_rate), criterion=nn.NLLLoss(), device=user_arg.device, checkpoint=user_arg.checkpoint, path=user_arg.checkpoint_path)
 
     trainer.fit(train_dataloader, epochs=user_arg.epochs,
