@@ -27,7 +27,7 @@ def predict(image_path, model, model_name, top_k=5, device='cuda'):
     model.to(device)
     tensor_image, img = process_image(image_path,model_name)
     tensor_image = tensor_image.type('torch.FloatTensor')
-    tensor_image = tensor_image.reshape(-1, 3, 224, 224)
+    tensor_image = tensor_image.reshape(-1, 3, CROP.get(model_name)[0], CROP.get(model_name)[0])
 
     log_prob = model(tensor_image)
     prob = log_prob.exp()

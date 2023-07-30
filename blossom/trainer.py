@@ -40,9 +40,10 @@ class Trainer:
                 loss = self.criterion(log_prob, labels)
                 loss.backward()
                 self.optimizer.step()
-
                 running_loss += loss.item()
-                prob = torch.exp(log_prob)
+                
+                #TO DO: convert to a method
+                prob = log_prob.exp()
                 top_p, top_class = prob.topk(1, dim=1)
                 equals = top_class == labels.view(*top_class.shape)
                 running_accuracy += torch.mean(equals.type(torch.FloatTensor))
@@ -61,14 +62,15 @@ class Trainer:
                         log_prob = self.classifier(images)
                         valid_loss += self.criterion(log_prob, labels)
 
-                        prob = torch.exp(log_prob)
+                        prob = log_prob.exp()
                         top_p, top_class = prob.topk(1, dim=1)
                         equals = top_class == labels.view(*top_class.shape)
                         valid_accuracy += torch.mean(
                             equals.type(torch.FloatTensor))
                 self.valid_losses.append(valid_loss/len(validation_data))
                 valid_stop = time.time() - valid_start
-
+                
+            #TO DO: add model name to checkpoint path
             self.completed_epochs += 1
             if self.save and (idx+1) %15 ==0:
                 self.classifier.to('cpu') 
@@ -76,6 +78,7 @@ class Trainer:
                 self.check_point(new_path)
                 self.classifier.to(self.device) 
             
+            # TO DO: fix train logging, specifically when validation data in not given
             print("Epoch: {}/{}..".format(idx+1, epochs),
                   "Train Time:{:.3f}.".format(train_stop/60),
                   "Training Loss:{:.3f}..".format(running_loss/len(trainds)),
@@ -94,7 +97,7 @@ class Trainer:
         Args:
             path (str, optional): _description_. Defaults to 'checkpoint.pth'.
         """
-        info = {'num_classes': self.classifier.model.num_classes,
+        info = {'num_classes': self.classifier.num_classes,
                 'epoch': self.completed_epochs,
                 'model_state_dict': self.classifier.state_dict(),
                 'optimizer_state_dict': self.optimizer.state_dict(),
@@ -117,7 +120,7 @@ class Trainer:
         self.train_losses = checkpoint['train_losses']
         self.valid_losses = checkpoint['valid_losses']
         self.completed_epochs = checkpoint['epoch']
-        self.classifier.model.num_classes = checkpoint['num_classes']
+        self.classifier.num_classes = checkpoint['num_classes']
 
     def predict(self, image, top=5):
         """_summary_
@@ -130,6 +133,6 @@ class Trainer:
             _type_: _description_
         """
         log_prob = self.classifier(image)
-        prob = torch.exp(log_prob)
+        prob = log_prob.exp()
         top_p, top_class = prob.topk(top, dim=1)
         return top_p, top_class
