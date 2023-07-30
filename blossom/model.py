@@ -6,9 +6,19 @@ architecture = {
     "MNASNet": 'mnasnet1_3',
     "Efficientnet": 'efficientnet_b3',
     # "Swin_T": 'swin_t',
-    "maxvit_t": 'maxvit_t',
+    #"maxvit_t": 'maxvit_t',
     "ConvNeXt": 'convnext_tiny',
     "RegNet": 'regnet_y_3_2gf'
+}
+
+
+HIDDEN_INPUT = {
+    "MNASNet": 1280,
+    "Efficientnet": 1536,
+    # "Swin_T": ,
+    "maxvit_t": 512,
+    "ConvNeXt": 768,
+    "RegNet":  1512
 }
 
 
@@ -23,7 +33,8 @@ class BlossomNet(nn.Module):
         super().__init__()
         self.model = get_model(architecture.get(model_name), weights='DEFAULT')
         self._freeze(trainable)
-        self.model.model.num_classes = num_classes
+        self.num_classes = num_classes
+        self.model_name = model_name
         if hasattr(self.model, 'classifier'):
             self.model.classifier = self._output()
         elif hasattr(self.model, 'linear'):
@@ -51,24 +62,15 @@ class BlossomNet(nn.Module):
         Returns:
             _type_: _description_
         """
-        output = nn.Sequential(OrderedDict([('dropout1', nn.Dropout(p=0.55, inplace=True)),
-                                            ('linear1', nn.Linear()),
+        output = nn.Sequential(OrderedDict([('dropout1', nn.Dropout(p=0.3, inplace=True)),
+                                            ('linear1', nn.Linear(HIDDEN_INPUT.get(self.model_name), 365)),
                                             ('relu1', nn.ReLU(inplace=True)),
-                                            ('linear2', nn.Linear()),
-                                            ('relu2', nn.ReLU(inplace=True)),
+                                            ('linear2', nn.Linear(365, self.num_classes)),
                                             ('output', nn.LogSoftmax(dim=1))
                                             ]))
         return output
 
-    def _linear_output(self):
-        output = nn.Sequential(OrderedDict([('dropout1', nn.Dropout(p=0.55, inplace=True)),
-                                            ('linear1', nn.Linear()),
-                                            ('relu1', nn.ReLU(inplace=True)),
-                                            ('linear2', nn.Linear()),
-                                            ('relu2', nn.ReLU(inplace=True)),
-                                            ('output', nn.LogSoftmax(dim=1))
-                                            ]))
-        return output
+
 
     def forward(self, input_x):
         """_summary_

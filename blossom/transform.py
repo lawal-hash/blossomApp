@@ -16,11 +16,3 @@ CROP = {
     "RegNet":  [224]
 }
 
-HIDDEN_INPUT = {
-    "MNASNet": 1280,
-    "Efficientnet": 1536,
-    # "Swin_T": ,
-    "maxvit_t": 512,
-    "ConvNeXt": 768,
-    "RegNet":  1512
-}
