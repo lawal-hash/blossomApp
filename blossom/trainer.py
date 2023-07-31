@@ -34,6 +34,7 @@ class Trainer:
             running_loss, running_accuracy = 0, 0
             for images, labels in trainds:
                 images, labels = images.to(self.device), labels.to(self.device)
+                labels = labels - 1
 
                 self.optimizer.zero_grad()
                 log_prob = self.classifier(images)
@@ -59,6 +60,8 @@ class Trainer:
                     for images, labels in validation_data:
                         images, labels = images.to(
                             self.device), labels.to(self.device)
+                        
+                        labels = labels - 1
                         log_prob = self.classifier(images)
                         valid_loss += self.criterion(log_prob, labels)
 

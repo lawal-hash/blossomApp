@@ -41,12 +41,12 @@ def label_name(top_p, top_class, idx_to_class=None):
     top_p = top_p.detach().numpy().reshape(-1,).tolist()
     #TO DO: Return just the class probabilities, when categories file is not provided
     for target in top_class:
-        labels.append(idx_to_class.get(str(target)))
+        labels.append(idx_to_class.get(str(target +1)))
     return labels, top_p
 
 
 def load_checkpoint(path, model):
-    checkpoint = torch.load(path)
+    checkpoint = torch.load(path,   map_location=torch.device('cpu'))
     model.load_state_dict(checkpoint['model_state_dict'])
     model.num_classes = checkpoint['num_classes']
     return model
