@@ -4,6 +4,8 @@ from torchvision import transforms
 from blossom.transform import RESIZE, CROP
 
 
+
+
 def process_image(image_path,model_name):
     ''' Scales, crops, and normalizes a PIL image for a PyTorch model,
         returns an Numpy array

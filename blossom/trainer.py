@@ -34,7 +34,6 @@ class Trainer:
             running_loss, running_accuracy = 0, 0
             for images, labels in trainds:
                 images, labels = images.to(self.device), labels.to(self.device)
-                labels = labels - 1
 
                 self.optimizer.zero_grad()
                 log_prob = self.classifier(images)
@@ -61,7 +60,6 @@ class Trainer:
                         images, labels = images.to(
                             self.device), labels.to(self.device)
                         
-                        labels = labels - 1
                         log_prob = self.classifier(images)
                         valid_loss += self.criterion(log_prob, labels)
 
@@ -83,14 +81,14 @@ class Trainer:
             
             # TO DO: fix train logging, specifically when validation data in not given
             print("Epoch: {}/{}..".format(idx+1, epochs),
-                  "Train Time:{:.3f}.".format(train_stop/60),
-                  "Training Loss:{:.3f}..".format(running_loss/len(trainds)),
-                  "Training Accuracy:{:.3f}..".format(
-                      running_accuracy/len(trainds)),
-                  "Valid Loss:{:.3f}..".format(
-                      valid_loss/len(validation_data)),
-                  "Valid Time:{:.3f}.".format(valid_stop/60),
-                  "Valid Accuracy: {:.3f}".format(valid_accuracy/len(validation_data)))
+                "Train Time:{:.3f}.".format(train_stop/60),
+                "Training Loss:{:.3f}..".format(running_loss/len(trainds)),
+                "Training Accuracy:{:.3f}..".format(
+                    running_accuracy/len(trainds)),
+                "Valid Loss:{:.3f}..".format(
+                    valid_loss/len(validation_data)),
+                "Valid Time:{:.3f}.".format(valid_stop/60),
+                "Valid Accuracy: {:.3f}".format(valid_accuracy/len(validation_data)))
             self.classifier.train()
         
 

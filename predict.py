@@ -12,14 +12,15 @@ def main():
     with open(user_arg.category_names, 'r') as f:
         cat_to_name = json.load(f)
 
-    blossomnet = BlossomNet()
+    blossomnet = BlossomNet(model_name=user_arg.arch)
     blossomnet = load_checkpoint(user_arg.checkpoint_path, blossomnet)
     blossomnet.eval()
     _, top_p, top_class = predict(
         user_arg.input, blossomnet,user_arg.arch, top_k=user_arg.top_k, device=user_arg.device)
     labels, top_p = label_name(top_p, top_class, idx_to_class=cat_to_name)
     print(f"The top {user_arg.top_k} probabilities are: {top_p}",
-        f"The top {user_arg.top_k} classes are:{labels}")
+        f"The top {user_arg.top_k} classes are:{labels}",
+        f"The top {user_arg.top_k} classes are: {top_class}")
 
 
 if __name__ == "__main__":
