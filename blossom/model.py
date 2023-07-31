@@ -13,11 +13,11 @@ architecture = {
 
 
 HIDDEN_INPUT = {
-    "MNASNet": 1280,
-    "Efficientnet": 1536,
+    "MNASNet": 20480,
+    "Efficientnet": 24576,
     # "Swin_T": ,
     "maxvit_t": 512,
-    "ConvNeXt": 768,
+    "ConvNeXt": 12288,
     "RegNet":  1512
 }
 
@@ -35,17 +35,28 @@ class BlossomNet(nn.Module):
         self._freeze(trainable)
         self.num_classes = num_classes
         self.model_name = model_name
-        if hasattr(self.model, 'classifier'):
-            self.model.classifier = self._output()
-        elif hasattr(self.model, 'linear'):
-            self.model.linear = self._output()
-        elif hasattr(self.model, 'fc'):
-            self.model.fc = self._output()
-        else:
-            raise AttributeError('Unsupported architecture')
-
+        
         if hasattr(self.model, 'avgpool'):
-            self.model.avgpool = nn.AdaptiveAvgPool2d(output_size=1)
+            self.model.avgpool = nn.AvgPool2d((3, 3), stride=(2, 2))
+            
+        if hasattr(self.model, 'classifier') and (self.model_name == 'ConvNeXt'):
+            self.model.classifier = self.convnext_output()
+            
+        if hasattr(self.model, 'classifier') and (self.model_name == 'Efficientnet'):
+            self.model.classifier = self.efficientnet_output()    
+            
+            
+        if hasattr(self.model, 'classifier') and (self.model_name == 'MNASNet'):
+            self.model.classifier = self.mnasnet_output()          
+            
+        #elif hasattr(self.model, 'linear'):
+            #self.model.linear = self._output()
+        #elif hasattr(self.model, 'fc'):
+            #self.model.fc = self._output()
+        #else:
+            #raise AttributeError('Unsupported architecture')
+
+
 
     def _freeze(self, trainable):
         """_summary_
@@ -56,18 +67,74 @@ class BlossomNet(nn.Module):
         for param in self.model.parameters():
             param.requires_grad = trainable
 
+    def efficientnet_output(self):
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
+        output = nn.Sequential(OrderedDict([ ('flatten', nn.Flatten()),
+                                            ('dropout1', nn.Dropout(p=0.5, inplace=False)),
+                                            ('linear1', nn.Linear(HIDDEN_INPUT.get(self.model_name), 3650)),
+                                            ('relu1', nn.ReLU(inplace=False)),
+                                            ('dropout2', nn.Dropout(p=0.5, inplace=False)),
+                                            ('linear2', nn.Linear(3650, self.num_classes)),
+                                            ('output', nn.LogSoftmax(dim=1))
+                                            ]))
+        return output
+    
+    def mnasnet_output(self):
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
+        output = nn.Sequential(OrderedDict([
+                                        ('pool',nn.AvgPool2d((3, 3), stride=(2, 2))),
+                                        ('flatten', nn.Flatten()),
+                                        ('dropout1', nn.Dropout(p=0.5, inplace=False)),
+                                        ('linear1', nn.Linear(HIDDEN_INPUT.get(self.model_name), 512)),
+                                        ('relu1', nn.ReLU(inplace=False)),
+                                        ('dropout2', nn.Dropout(p=0.5, inplace=False)),
+                                        ('linear2', nn.Linear(512, self.num_classes)),
+                                        ('output', nn.LogSoftmax(dim=1))
+                                        ]))
+        return output
+
+
+
+
+
+    def convnext_output(self):
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
+        output = nn.Sequential(OrderedDict([
+                                    ('flatten', nn.Flatten()),
+                                    ('dropout1', nn.Dropout(p=0.5, inplace=False)),
+                                    ('linear1', nn.Linear(HIDDEN_INPUT.get(self.model_name), 3250)),
+                                    ('relu1', nn.ReLU(inplace=False)),
+                                    ('dropout2', nn.Dropout(p=0.3, inplace=False)),
+                                    ('linear2', nn.Linear(3250, self.num_classes)),
+                                    ('output', nn.LogSoftmax(dim=1))
+                                    ]))
+        return output
+
+
     def _output(self):
         """_summary_
 
         Returns:
             _type_: _description_
         """
-        output = nn.Sequential(OrderedDict([('dropout1', nn.Dropout(p=0.3, inplace=True)),
-                                            ('linear1', nn.Linear(HIDDEN_INPUT.get(self.model_name), 365)),
-                                            ('relu1', nn.ReLU(inplace=True)),
-                                            ('linear2', nn.Linear(365, self.num_classes)),
-                                            ('output', nn.LogSoftmax(dim=1))
-                                            ]))
+        output = nn.Sequential(OrderedDict([('dropout1', nn.Dropout(p=0.3, inplace=False)),
+                                        ('linear1', nn.Linear(HIDDEN_INPUT.get(self.model_name), 365)),
+                                        ('relu1', nn.ReLU(inplace=False)),
+                                        ('linear2', nn.Linear(365, self.num_classes)),
+                                        ('output', nn.LogSoftmax(dim=1))
+                                        ]))
         return output
 
 
@@ -81,4 +148,4 @@ class BlossomNet(nn.Module):
         Returns:
             _type_: _description_
         """
-        return self.model(input_x)
+        return  self.model(input_x)
