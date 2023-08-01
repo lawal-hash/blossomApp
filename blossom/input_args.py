@@ -5,7 +5,7 @@ def get_users_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str, default='/',
                         help='path to test image')
-    parser.add_argument('--data_directory', type=str,
+    parser.add_argument('--dir', type=str,
                         default='flowers/', help='path to folder of images')
     parser.add_argument('--checkpoint', type=bool, default=True,
                         help='Save the model state_dict after training, highly encouraged')
