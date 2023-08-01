@@ -16,8 +16,6 @@ def get_users_args():
                         default='checkpoint', help='path to save the checkpoint')
     parser.add_argument('--top_k', type=int, default=5,
                         help='Return K most likely class')
-    parser.add_argument('--category_names', type=str, default='cat_to_name.json',
-                        help='path to folder of mapping of categories to the real names')
     parser.add_argument('--device', type=str, default='cpu',
                         help='enable gpu training or cpu training, gpu is highly recommended')
     parser.add_argument('--learning_rate', type=float,
