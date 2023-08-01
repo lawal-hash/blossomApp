@@ -5,3 +5,5 @@ checkpoint*.pth
 forget_me_not.jpeg
 __pycache__/
 .DS_Store
+experiments.ipynb
+experiments copy.ipynb
