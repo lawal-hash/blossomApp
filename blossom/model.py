@@ -67,28 +67,12 @@ class BlossomNet(nn.Module):
             _type_: _description_
         """
         output = nn.Sequential(OrderedDict([
-                                        #('dropout1', nn.Dropout(p=0.3, inplace=False)),
-                                        ('linear1', nn.Linear(HIDDEN_INPUT.get(self.model_name),  self.num_classes)),
-                                        #('relu1', nn.ReLU(inplace=False)),
-                                        #('linear2', nn.Linear(365, self.num_classes)),
+                                        ('dropout', nn.Dropout(p=0.3, inplace=False)),
+                                        ('linear', nn.Linear(HIDDEN_INPUT.get(self.model_name),  self.num_classes)),
                                         ('output', nn.LogSoftmax(dim=1))
                                         ]))
         return output
 
-
-    def output(self):
-        """_summary_
-
-        Returns:
-            _type_: _description_
-        """
-        output = nn.Sequential(OrderedDict([('dropout1', nn.Dropout(p=0.3, inplace=True)),
-                                        ('linear1', nn.Linear(HIDDEN_INPUT.get(self.model_name), 365)),
-                                        ('relu1', nn.ReLU(inplace=True)),
-                                        ('linear2', nn.Linear(365, self.num_classes)),
-                                        ('output', nn.LogSoftmax(dim=1))
-                                        ]))
-        return output
 
     def forward(self, input_x):
         """_summary_
